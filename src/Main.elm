@@ -63,20 +63,27 @@ view model =
             [ centerX
             , centerY
             ]
-            (column []
+            ( column []
                 [ el
                     [ Font.color (rgb255 64 64 64)
                     , Font.size 48
                     , centerX
+                    , padding 8
                     ]
                     ( text "Hearing Trainer" )
-                , el []
+                , el
+                    [ centerX
+                    , padding 8
+                    ]
                     ( musicNote "Do" )
-                , el []
+                , el
+                    [ padding 8
+                    ]
                     ( musicNotes model )
-                -- , el []
-                --     ( myElement model )
-                , el []
+                , el
+                    [ centerX
+                    , padding 8   
+                    ]
                     ( statusMsg model )
                 ]
             )
@@ -85,17 +92,19 @@ view model =
 
 musicNote : String -> Element Msg
 musicNote note =
-    Input.button
-        [ Background.color (rgb255 40 0 145)
-        , Element.focused
-            [ Background.color (rgb255 238 238 238) ]
-        , Font.color (rgb255 255 255 255)
-        , Border.rounded 3
-        , padding 30
-        ]
-        { onPress = Just (PlayNote note)
-        , label = text note
-        }
+    el []
+        (Input.button
+            [ Background.color (rgb255 40 0 145)
+            , Element.focused
+                [ Background.color (rgb255 238 238 238) ]
+            , Font.color (rgb255 255 255 255)
+            , Border.rounded 3
+            , padding 30
+            ]
+            { onPress = Just (PlayNote note)
+            , label = text note
+            }
+        )
 
 
 musicNotes: Model -> Element Msg
