@@ -7,6 +7,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
+import Random
 
 
 
@@ -14,24 +15,39 @@ import Element.Input as Input
 
 
 type alias Model =
-    { action: String
-    , notes: List String
+    { scene: Scene
+    , status: Status
+    , note: Note
     }
+
+
+type Scene
+  = Home
+  | Game
+
+
+type Status
+  = Start
+  | Play
+  | Match
+  | Fail
+  | Win
+
+
+type Note
+  = Do
+  | Re
+  | Mi
+  | Fa
+  | Sol
+  | La
+  | Si
 
 
 init : ( Model, Cmd Msg )
 init =
-      ( Model
-            "Play music note"
-            [ "Do"
-            , "Re"
-            , "Mi"
-            , "Fa"
-            , "Sol"
-            , "La"
-            , "Si"
-            ]
-      , Cmd.none
+      ( Model Game Start Fa
+      , Random.generate Shuffle noteGenerator
       )
 
 
@@ -40,17 +56,35 @@ init =
 
 type Msg
     = PlayNote String
+    | Shuffle Note
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PlayNote note ->
+        PlayNote _ ->
+            ( model
+            , Random.generate Shuffle noteGenerator
+            )
+        Shuffle newNote ->
             ( Model
-                ("Playing " ++ note)
-                model.notes
+                model.scene
+                model.status
+                newNote 
             , Cmd.none
             )
+
+
+noteGenerator : Random.Generator Note
+noteGenerator =
+  Random.uniform Do
+    [ Re
+    , Mi
+    , Fa
+    , Sol
+    , La
+    , Si
+    ]
 
 
 ---- VIEW ----
@@ -75,19 +109,41 @@ view model =
                     [ centerX
                     , padding 8
                     ]
-                    ( musicNote "Do" )
-                , el
-                    [ padding 8
-                    ]
-                    ( musicNotes model )
+                    ( musicNote ( viewNote model.note ) )
+                -- , el
+                --     [ padding 8
+                --     ]
+                --     ( musicNotes model )
                 , el
                     [ centerX
                     , padding 8   
                     ]
-                    ( statusMsg model )
+                    ( statusMsg ( viewStatus model.status ) )
                 ]
             )
         )
+
+
+viewStatus : Status -> String
+viewStatus status =
+    case status of
+        Start -> "Push the yellow buttons to become familiar with the sounds of the music notes. When you're ready, push the start button to beginn playing."
+        Play -> "Push the card with the question mark to listen to a musical note, then select the correct note from the multiple choices."
+        Match -> "Very well! Now guess the next note."
+        Fail -> "Try again! That was not the correct note."
+        Win -> "Excellent! You won."
+     
+
+viewNote : Note -> String
+viewNote note =
+    case note of
+        Do -> "Do"
+        Re -> "Re"
+        Mi -> "Mi"
+        Fa -> "Fa"
+        Sol -> "Sol"
+        La -> "La"
+        Si -> "Si"
 
 
 musicNote : String -> Element Msg
@@ -107,20 +163,20 @@ musicNote note =
         )
 
 
-musicNotes: Model -> Element Msg
-musicNotes model =
-    row
-        [ width fill, centerY, spacing 30 ]
-        ( List.map musicNote model.notes )
+-- musicNotes: Model -> Element Msg
+-- musicNotes model =
+--     row
+--         [ width fill, centerY, spacing 30 ]
+--         ( List.map musicNote model.notes )
 
 
 
-statusMsg : Model -> Element Msg
-statusMsg model =
+statusMsg : String -> Element Msg
+statusMsg status =
     row []
         [ el
             []
-            ( text model.action )
+            ( text status )
         ]
 
         
