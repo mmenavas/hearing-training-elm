@@ -15,13 +15,13 @@ import Random
 
 
 type alias Model =
-    { scene: Scene
+    { screen: Screen
     , status: Status
     , note: Note
     }
 
 
-type Scene
+type Screen
   = Home
   | Game
 
@@ -46,7 +46,7 @@ type Note
 
 init : ( Model, Cmd Msg )
 init =
-      ( Model Game Start Fa
+      ( Model Game Start Do
       , Random.generate Shuffle noteGenerator
       )
 
@@ -68,7 +68,7 @@ update msg model =
             )
         Shuffle newNote ->
             ( Model
-                model.scene
+                model.screen
                 model.status
                 newNote 
             , Cmd.none
