@@ -68,7 +68,7 @@ update msg model =
         PlayNote note ->
             if note == model.note then
                 ( { model | show = True }
-                , showMainNote model
+                , showMainNote
                 )
             else
                 ( model
@@ -90,8 +90,11 @@ update msg model =
             )
 
 
-showMainNote: Model -> Cmd Msg
-showMainNote model =
+---- COMMANDS ----
+
+
+showMainNote: Cmd Msg
+showMainNote =
     Delay.after 500 Delay.Millisecond Shuffle
 
 
@@ -100,10 +103,10 @@ noteGenerator =
   Random.uniform Do
     [ Re
     , Mi
-    -- , Fa
-    -- , Sol
-    -- , La
-    -- , Si
+    , Fa
+    , Sol
+    , La
+    , Si
     ]
 
 
@@ -138,6 +141,10 @@ view model =
                         [ musicNote Do
                         , musicNote Re
                         , musicNote Mi
+                        , musicNote Fa
+                        , musicNote Sol
+                        , musicNote La
+                        , musicNote Si
                         ]
                     )
                 , el
@@ -192,8 +199,6 @@ musicNote note =
     el []
         (Input.button
             [ Background.color (rgb255 40 0 145)
-            -- , Element.focused
-            --     [ Background.color (rgb255 238 238 238) ]
             , Font.color (rgb255 255 255 255)
             , Border.rounded 3
             , padding 30
