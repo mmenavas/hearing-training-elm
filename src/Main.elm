@@ -8,6 +8,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Random
+import Delay
 
 
 
@@ -18,6 +19,7 @@ type alias Model =
     { screen: Screen
     , status: Status
     , note: Note
+    , show: Bool
     }
 
 
@@ -46,8 +48,8 @@ type Note
 
 init : ( Model, Cmd Msg )
 init =
-      ( Model Game Start Do
-      , Random.generate Shuffle noteGenerator
+      ( Model Game Start Do True
+      , Random.generate UpdateNote noteGenerator
       )
 
 
@@ -55,24 +57,42 @@ init =
 
 
 type Msg
-    = PlayNote String
-    | Shuffle Note
+    = PlayNote Note
+    | Shuffle
+    | UpdateNote Note
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PlayNote _ ->
-            ( model
-            , Random.generate Shuffle noteGenerator
+        PlayNote note ->
+            if note == model.note then
+                ( { model | show = True }
+                , showMainNote model
+                )
+            else
+                ( model
+                , Cmd.none
+                )
+
+        Shuffle ->
+            (model
+            , Random.generate UpdateNote noteGenerator
             )
-        Shuffle newNote ->
+            
+        UpdateNote newNote ->
             ( Model
                 model.screen
                 model.status
                 newNote 
+                False
             , Cmd.none
             )
+
+
+showMainNote: Model -> Cmd Msg
+showMainNote model =
+    Delay.after 500 Delay.Millisecond Shuffle
 
 
 noteGenerator : Random.Generator Note
@@ -80,10 +100,10 @@ noteGenerator =
   Random.uniform Do
     [ Re
     , Mi
-    , Fa
-    , Sol
-    , La
-    , Si
+    -- , Fa
+    -- , Sol
+    -- , La
+    -- , Si
     ]
 
 
@@ -109,14 +129,20 @@ view model =
                     [ centerX
                     , padding 8
                     ]
-                    ( musicNote ( viewNote model.note ) )
-                -- , el
-                --     [ padding 8
-                --     ]
-                --     ( musicNotes model )
+                    ( mainNote model )
                 , el
                     [ centerX
-                    , padding 8   
+                    , padding 8
+                    ]
+                    ( row [ spacing 8 ]
+                        [ musicNote Do
+                        , musicNote Re
+                        , musicNote Mi
+                        ]
+                    )
+                , el
+                    [ centerX
+                    , padding 8 
                     ]
                     ( statusMsg ( viewStatus model.status ) )
                 ]
@@ -146,36 +172,42 @@ viewNote note =
         Si -> "Si"
 
 
-musicNote : String -> Element Msg
+mainNote : Model -> Element Msg
+mainNote model =
+    el []
+        (Input.button
+            [ Background.color (rgb255 50 10 175)
+            , Font.color (rgb255 255 255 255)
+            , Border.rounded 3
+            , padding 30
+            ]
+            { onPress = Just (PlayNote model.note)
+            , label = text (if model.show then viewNote model.note else "?")
+            }
+        )
+
+
+musicNote : Note -> Element Msg
 musicNote note =
     el []
         (Input.button
             [ Background.color (rgb255 40 0 145)
-            , Element.focused
-                [ Background.color (rgb255 238 238 238) ]
+            -- , Element.focused
+            --     [ Background.color (rgb255 238 238 238) ]
             , Font.color (rgb255 255 255 255)
             , Border.rounded 3
             , padding 30
             ]
             { onPress = Just (PlayNote note)
-            , label = text note
+            , label = text (viewNote note)
             }
         )
-
-
--- musicNotes: Model -> Element Msg
--- musicNotes model =
---     row
---         [ width fill, centerY, spacing 30 ]
---         ( List.map musicNote model.notes )
-
 
 
 statusMsg : String -> Element Msg
 statusMsg status =
     row []
-        [ el
-            []
+        [ el []
             ( text status )
         ]
 
