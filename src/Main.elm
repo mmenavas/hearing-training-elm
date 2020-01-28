@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Html exposing (Html)
@@ -9,7 +9,13 @@ import Element.Font as Font
 import Element.Input as Input
 import Random
 import Delay
+import Json.Encode as E
 
+
+---- PORTS ----
+
+
+port play : E.Value -> Cmd msg
 
 
 ---- MODEL ----
@@ -57,7 +63,8 @@ init =
 
 
 type Msg
-    = PlayNote Note
+    = CheckNote
+    | SelectNote Note
     | Shuffle
     | UpdateNote Note
 
@@ -65,18 +72,23 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        PlayNote note ->
+        CheckNote ->
+            ( model
+            , playNote model.note
+            )
+
+        SelectNote note ->
             if note == model.note then
                 ( { model | show = True }
-                , showMainNote
+                , Cmd.batch [ showMainNote, playNote note ]
                 )
             else
                 ( model
-                , Cmd.none
+                , playNote note
                 )
 
         Shuffle ->
-            (model
+            ( model
             , Random.generate UpdateNote noteGenerator
             )
             
@@ -91,6 +103,11 @@ update msg model =
 
 
 ---- COMMANDS ----
+
+
+playNote: Note -> Cmd Msg
+playNote note = 
+    play ( E.string ( viewNote note ) )
 
 
 showMainNote: Cmd Msg
@@ -188,8 +205,8 @@ mainNote model =
             , Border.rounded 3
             , padding 30
             ]
-            { onPress = Just (PlayNote model.note)
-            , label = text (if model.show then viewNote model.note else "?")
+            { onPress = Just CheckNote
+            , label = text ( if model.show then viewNote model.note else "?" )
             }
         )
 
@@ -203,8 +220,8 @@ musicNote note =
             , Border.rounded 3
             , padding 30
             ]
-            { onPress = Just (PlayNote note)
-            , label = text (viewNote note)
+            { onPress = Just ( SelectNote note )
+            , label = text ( viewNote note )
             }
         )
 
@@ -215,8 +232,8 @@ statusMsg status =
         [ el []
             ( text status )
         ]
-
         
+
 ---- PROGRAM ----
 
 
