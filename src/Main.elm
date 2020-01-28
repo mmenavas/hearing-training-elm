@@ -56,7 +56,7 @@ type Note
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model Game Start Do True
+    ( Model Game Play Do True
     , Random.generate UpdateNote noteGenerator
     )
 
@@ -82,12 +82,12 @@ update msg model =
 
         SelectNote note ->
             if note == model.note then
-                ( { model | show = True }
+                ( { model | show = True, status = Match }
                 , Cmd.batch [ showMainNote, playNote note ]
                 )
 
             else
-                ( model
+                ( { model | status = Fail }
                 , playNote note
                 )
 
