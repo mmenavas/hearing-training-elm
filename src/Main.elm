@@ -19,16 +19,7 @@ import Random
 port play : E.Value -> Cmd msg
 
 
-
----- MODEL ----
-
-
-type alias Model =
-    { screen : Screen
-    , status : Status
-    , note : Note
-    , show : Bool
-    }
+---- CUSTOM TYPES ----
 
 
 type Screen
@@ -52,6 +43,17 @@ type Note
     | Sol
     | La
     | Si
+
+
+---- MODEL ----
+
+
+type alias Model =
+    { screen : Screen
+    , status : Status
+    , note : Note
+    , show : Bool
+    }
 
 
 init : ( Model, Cmd Msg )
