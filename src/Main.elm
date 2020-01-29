@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Delay
-import Element exposing (Element, alignRight, centerX, centerY, column, el, fill, padding, rgb255, row, spacing, text, width)
+import Element exposing (Element, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, rgb255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -17,6 +17,7 @@ import Random
 
 
 port play : E.Value -> Cmd msg
+
 
 
 ---- CUSTOM TYPES ----
@@ -45,6 +46,7 @@ type Note
     | Si
 
 
+
 ---- MODEL ----
 
 
@@ -58,7 +60,7 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model Game Play Do True
+    ( Model Home Start Do True
     , Random.generate UpdateNote noteGenerator
     )
 
@@ -68,7 +70,8 @@ init =
 
 
 type Msg
-    = CheckNote
+    = StartGame
+    | CheckNote
     | SelectNote Note
     | Shuffle
     | UpdateNote Note
@@ -77,6 +80,11 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        StartGame ->
+            ( { model | screen = Game, status = Play }
+            , Cmd.none
+            )
+
         CheckNote ->
             ( model
             , playNote model.note
@@ -144,6 +152,8 @@ view model =
         (el
             [ centerX
             , centerY
+
+            -- , width fill
             ]
             (column []
                 [ el
@@ -153,32 +163,64 @@ view model =
                     , padding 8
                     ]
                     (text "Hearing Trainer")
-                , el
-                    [ centerX
-                    , padding 8
-                    ]
-                    (mainNote model)
-                , el
-                    [ centerX
-                    , padding 8
-                    ]
-                    (row [ spacing 8 ]
-                        [ musicNote Do
-                        , musicNote Re
-                        , musicNote Mi
-                        , musicNote Fa
-                        , musicNote Sol
-                        , musicNote La
-                        , musicNote Si
-                        ]
-                    )
-                , el
-                    [ centerX
-                    , padding 8
-                    ]
-                    (statusMsg (viewStatus model.status))
+                , viewMainContent model
+                , paragraph []
+                    [ text (viewStatus model.status) ]
                 ]
             )
+        )
+
+
+viewMainContent : Model -> Element Msg
+viewMainContent model =
+    case model.screen of
+        Home ->
+            viewHome model
+
+        Game ->
+            viewGame model
+
+
+viewHome : Model -> Element Msg
+viewHome model =
+    el [ centerX ]
+        (Input.button
+            [ Background.color (rgb255 50 10 175)
+            , Font.color (rgb255 255 255 255)
+            , Border.rounded 3
+            , padding 30
+            ]
+            { onPress = Just StartGame
+            , label =
+                text "Start Game"
+            }
+        )
+
+
+viewGame : Model -> Element Msg
+viewGame model =
+    el [ centerX ]
+        (column []
+            [ el
+                [ centerX
+                , padding 8
+                ]
+                (mainNote model)
+            , el
+                [ centerX
+                , padding 8
+                ]
+                (row [ spacing 8 ]
+                    [ musicNote Do
+                    , musicNote Re
+                    , musicNote Mi
+                    , musicNote Fa
+                    , musicNote Sol
+                    , musicNote La
+                    , musicNote Si
+                    ]
+                )
+            ]
         )
 
 
@@ -261,14 +303,6 @@ musicNote note =
             , label = text (viewNote note)
             }
         )
-
-
-statusMsg : String -> Element Msg
-statusMsg status =
-    row []
-        [ el []
-            (text status)
-        ]
 
 
 
