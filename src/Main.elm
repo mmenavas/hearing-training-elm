@@ -61,7 +61,7 @@ type alias Model =
 init : ( Model, Cmd Msg )
 init =
     ( Model Home Start Do True
-    , Random.generate UpdateNote noteGenerator
+    , Random.generate UpdateHiddenNote noteGenerator
     )
 
 
@@ -71,10 +71,11 @@ init =
 
 type Msg
     = StartGame
-    | CheckNote
-    | SelectNote Note
-    | Shuffle
-    | UpdateNote Note
+    | GoHome
+    | ListenToHiddenNote
+    | MakeAGuess Note
+    | ShuffleHiddenNote
+    | UpdateHiddenNote Note
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,12 +86,15 @@ update msg model =
             , Cmd.none
             )
 
-        CheckNote ->
+        GoHome ->
+            init
+
+        ListenToHiddenNote ->
             ( model
             , playNote model.note
             )
 
-        SelectNote note ->
+        MakeAGuess note ->
             if note == model.note then
                 ( { model | show = True, status = Match }
                 , Cmd.batch [ showMainNote, playNote note ]
@@ -101,17 +105,13 @@ update msg model =
                 , playNote note
                 )
 
-        Shuffle ->
+        ShuffleHiddenNote ->
             ( model
-            , Random.generate UpdateNote noteGenerator
+            , Random.generate UpdateHiddenNote noteGenerator
             )
 
-        UpdateNote newNote ->
-            ( Model
-                model.screen
-                model.status
-                newNote
-                False
+        UpdateHiddenNote newNote ->
+            ( { model | note = newNote, show = False }
             , Cmd.none
             )
 
@@ -127,7 +127,7 @@ playNote note =
 
 showMainNote : Cmd Msg
 showMainNote =
-    Delay.after 500 Delay.Millisecond Shuffle
+    Delay.after 1000 Delay.Millisecond ShuffleHiddenNote
 
 
 noteGenerator : Random.Generator Note
@@ -182,7 +182,7 @@ viewMainContent model =
 
 
 viewHome : Model -> Element Msg
-viewHome model =
+viewHome _ =
     el [ centerX ]
         (Input.button
             [ Background.color (rgb255 50 10 175)
@@ -277,7 +277,7 @@ mainNote model =
             , Border.rounded 3
             , padding 30
             ]
-            { onPress = Just CheckNote
+            { onPress = Just ListenToHiddenNote
             , label =
                 text
                     (if model.show then
@@ -299,7 +299,7 @@ musicNote note =
             , Border.rounded 3
             , padding 30
             ]
-            { onPress = Just (SelectNote note)
+            { onPress = Just (MakeAGuess note)
             , label = text (viewNote note)
             }
         )
