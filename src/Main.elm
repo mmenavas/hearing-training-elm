@@ -2,12 +2,13 @@ port module Main exposing (..)
 
 import Browser
 import Delay
-import Element exposing (Element, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, rgb255, row, spacing, text, width)
+import Element exposing (Color, Element, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, rgb255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html exposing (Html)
+import Html.Attributes
 import Json.Encode as E
 import Random
 
@@ -148,27 +149,31 @@ noteGenerator =
 
 view : Model -> Html Msg
 view model =
-    Element.layout []
-        (el
-            [ centerX
-            , centerY
+    Element.layout
+        [ Background.color orange
+        ]
+        (viewMainContent model)
 
-            -- , width fill
-            ]
-            (column []
-                [ el
-                    [ Font.color (rgb255 64 64 64)
-                    , Font.size 48
-                    , centerX
-                    , padding 8
-                    ]
-                    (text "Hearing Trainer")
-                , viewMainContent model
-                , paragraph []
-                    [ text (viewStatus model.status) ]
-                ]
-            )
-        )
+
+
+-- (el
+--     [ centerX
+--     , centerY
+--     ]
+--     (column []
+--         [ el
+--             [ Font.color white
+--             , Font.size 48
+--             , centerX
+--             , padding 8
+--             ]
+--             (text "Hearing Trainer")
+--         , viewMainContent model
+--         , paragraph []
+--             [ text (viewStatus model.status) ]
+--         ]
+--     )
+-- )
 
 
 viewMainContent : Model -> Element Msg
@@ -182,28 +187,44 @@ viewMainContent model =
 
 
 viewHome : Model -> Element Msg
-viewHome _ =
-    el [ centerX ]
-        (Input.button
-            [ Background.color (rgb255 50 10 175)
-            , Font.color (rgb255 255 255 255)
-            , Border.rounded 3
-            , padding 30
+viewHome model =
+    el
+        [ centerX
+        , centerY
+        ]
+        (column []
+            [ el
+                [ Font.color white
+                , Font.size 48
+                , centerX
+                , padding 8
+                ]
+                (text "Hearing Trainer")
+            , el [ centerX ]
+                (Input.button
+                    [ Background.color slateBlue
+                    , Font.color white
+                    , Border.rounded 3
+                    , padding 30
+                    ]
+                    { onPress = Just StartGame
+                    , label =
+                        text "Start Game"
+                    }
+                )
+            , paragraph []
+                [ text (viewStatus model.status) ]
             ]
-            { onPress = Just StartGame
-            , label =
-                text "Start Game"
-            }
         )
 
 
 viewGame : Model -> Element Msg
 viewGame model =
-    el [ centerX ]
-        (column []
+    el [ centerX, centerY ]
+        (column [ spacing 20]
             [ el
                 [ centerX
-                , padding 8
+                , padding 20
                 ]
                 (mainNote model)
             , el
@@ -219,6 +240,18 @@ viewGame model =
                     , musicNote La
                     , musicNote Si
                     ]
+                )
+            , el [ centerX ]
+                (Input.button
+                    [ Background.color orange
+                    , Font.color white
+                    , padding 10
+                    ]
+                    { onPress = Just GoHome
+                    , label =
+                        -- text "Home"
+                        Element.html (Html.i [ Html.Attributes.class "fas fa-home" ] [])
+                    }
                 )
             ]
         )
@@ -272,20 +305,21 @@ mainNote : Model -> Element Msg
 mainNote model =
     el []
         (Input.button
-            [ Background.color (rgb255 50 10 175)
-            , Font.color (rgb255 255 255 255)
-            , Border.rounded 3
-            , padding 30
+            [ Background.color orange
+            , Border.rounded 10
+            , Border.color white
+            , Border.width 1
+            , padding 40
+            , Font.color white
+            , Font.size 50
             ]
             { onPress = Just ListenToHiddenNote
             , label =
-                text
-                    (if model.show then
-                        viewNote model.note
+                if model.show then
+                    text (viewNote model.note)
 
-                     else
-                        "?"
-                    )
+                else
+                    Element.html (Html.i [ Html.Attributes.class "fas fa-question" ] [])
             }
         )
 
@@ -294,15 +328,39 @@ musicNote : Note -> Element Msg
 musicNote note =
     el []
         (Input.button
-            [ Background.color (rgb255 40 0 145)
-            , Font.color (rgb255 255 255 255)
-            , Border.rounded 3
+            [ Background.color slateBlue
+            , Font.color white
+            , Border.rounded 50
             , padding 30
             ]
             { onPress = Just (MakeAGuess note)
             , label = text (viewNote note)
             }
         )
+
+
+
+---- Colors ----
+
+
+orange : Color
+orange =
+    rgb255 250 141 0
+
+
+blue : Color
+blue =
+    rgb255 0 164 250
+
+
+slateBlue : Color
+slateBlue =
+    rgb255 73 138 173
+
+
+white : Color
+white =
+    rgb255 255 255 255
 
 
 
