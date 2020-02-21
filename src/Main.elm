@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Delay
-import Element exposing (Color, Element, alignRight, centerX, centerY, column, el, fill, height, padding, paragraph, rgb255, row, spacing, text, width)
+import Element exposing (Color, Element, alignRight, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -155,27 +155,6 @@ view model =
         (viewMainContent model)
 
 
-
--- (el
---     [ centerX
---     , centerY
---     ]
---     (column []
---         [ el
---             [ Font.color white
---             , Font.size 48
---             , centerX
---             , padding 8
---             ]
---             (text "Hearing Trainer")
---         , viewMainContent model
---         , paragraph []
---             [ text (viewStatus model.status) ]
---         ]
---     )
--- )
-
-
 viewMainContent : Model -> Element Msg
 viewMainContent model =
     case model.screen of
@@ -192,7 +171,7 @@ viewHome model =
         [ centerX
         , centerY
         ]
-        (column []
+        (column [ spacing 40 ]
             [ el
                 [ Font.color white
                 , Font.size 48
@@ -201,18 +180,42 @@ viewHome model =
                 ]
                 (text "Hearing Trainer")
             , el [ centerX ]
-                (Input.button
-                    [ Background.color slateBlue
-                    , Font.color white
-                    , Border.rounded 3
-                    , padding 30
+                (row [ spacing 8 ]
+                    [ el []
+                        (Input.button
+                            [ Background.color slateBlue
+                            , Font.color white
+                            , Font.size 24
+                            , Border.rounded 10
+                            , paddingXY 60 20
+                            ]
+                            { onPress = Just StartGame
+                            , label =
+                                text "Play"
+                            }
+                        )
+                    , el []
+                        (Input.button
+                            [ Background.color orange
+                            , Font.color white
+                            , Font.size 24
+                            , Border.rounded 10
+                            , Border.color white
+                            , Border.width 1
+                            , paddingXY 40 20
+                            ]
+                            { onPress = Just StartGame
+                            , label =
+                                text "Listen"
+                            }
+                        )
                     ]
-                    { onPress = Just StartGame
-                    , label =
-                        text "Start Game"
-                    }
                 )
-            , paragraph []
+            , paragraph
+                [ Font.color white
+                , Font.size 16
+                , width (px 400)
+                ]
                 [ text (viewStatus model.status) ]
             ]
         )
@@ -221,7 +224,7 @@ viewHome model =
 viewGame : Model -> Element Msg
 viewGame model =
     el [ centerX, centerY ]
-        (column [ spacing 20]
+        (column [ spacing 20 ]
             [ el
                 [ centerX
                 , padding 20
