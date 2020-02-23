@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/hearing-training-elm/precache-manifest.ec851498adf287bbd3110c154d8c4bc1.js"
+  "/hearing-training-elm/precache-manifest.dca19d90b7e689ddeb8bbc722c844bb1.js"
 );
 
 workbox.core.skipWaiting();
