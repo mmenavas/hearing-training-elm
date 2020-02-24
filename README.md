@@ -13,6 +13,7 @@ This project was bootstrapped with [Create Elm App](https://github.com/halfzebra
 ## Roadmap
 - Add a score system.
 - Add difficulty levels, where the easiest level just makes you guess contiguous notes. The next level will make you guess notes that are 1 or 2 steps apart. Etc.
+- Provide support for guessing note sequences.
 
 ## Bugs
-- Randomizer can repeat a note before return the rest of the notes.
+- Randomizer can repeat a note before return the rest of the notes. See https://package.elm-lang.org/packages/elm-community/random-extra/latest/Random-List for a potential solution.
