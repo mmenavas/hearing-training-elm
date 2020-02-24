@@ -31,12 +31,14 @@ type Screen
 
 
 type Status
-    = PreparingForGame
+    = OnHome
+    | PreparingForGame
     | StartingGame
-    | PlayingGame
     | MatchedNote
+    | GuessNextNote
     | FailedToMatchNote
-    | WonTheGame
+    | GameWon
+    | GameLost
 
 
 type Note
@@ -57,16 +59,24 @@ type alias Model =
     { screen : Screen
     , status : Status
     , note : Note
-    , show : Bool
+    , reveal : Bool
+    , matches : Int
+    , misses : Int
+    , notesCount : Int
     }
 
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model HomeScreen StartingGame Do True
-    , Random.generate UpdateConcealedNote noteGenerator
+    ( Model HomeScreen OnHome Do False 0 0 0
+    , Cmd.none
     )
 
+newGame : ( Model, Cmd Msg )
+newGame =
+    ( Model GameScreen StartingGame Do True 0 0 7
+    , Random.generate UpdateConcealedNote noteGenerator
+    )
 
 
 ---- UPDATE ----
@@ -81,6 +91,7 @@ type Msg
     | MakeAGuess Note
     | ShuffleConcealedNote
     | UpdateConcealedNote Note
+    | EndGame
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,9 +106,7 @@ update msg model =
             )
 
         StartGame ->
-            ( { model | screen = GameScreen, status = PlayingGame }
-            , Cmd.none
-            )
+            newGame
 
         ListenToNote note ->
             ( model, playNote note )
@@ -108,15 +117,22 @@ update msg model =
             )
 
         MakeAGuess note ->
-            if note == model.note then
-                ( { model | show = True, status = MatchedNote }
-                , Cmd.batch [ revealNote, playNote note ]
-                )
+            if not ( model.status == GameWon || model.status == GameLost ) then 
+                if note == model.note then
+                    let
+                        newMatches =
+                            model.matches + 1
+                    in
+                    ( { model | reveal = True, status = MatchedNote, matches = newMatches }
+                    , Cmd.batch [ playNote note, checkEndGame newMatches model.notesCount ]
+                    )
 
+                else
+                    ( { model | status = FailedToMatchNote, misses = model.misses + 1 }
+                    , playNote note
+                    )
             else
-                ( { model | status = FailedToMatchNote }
-                , playNote note
-                )
+                ( model, playNote note )
 
         ShuffleConcealedNote ->
             ( model
@@ -124,7 +140,18 @@ update msg model =
             )
 
         UpdateConcealedNote newNote ->
-            ( { model | note = newNote, show = False }
+            if model.status == StartingGame then
+                ( { model | note = newNote, status = StartingGame, reveal = False }
+                , Cmd.none
+                )
+
+            else 
+                ( { model | note = newNote, status = GuessNextNote, reveal = False }
+                , Cmd.none
+                )
+
+        EndGame ->
+            ( { model | status = GameWon, reveal = True }
             , Cmd.none
             )
 
@@ -138,9 +165,13 @@ playNote note =
     play (E.string (viewNote note))
 
 
-revealNote : Cmd Msg
-revealNote =
-    Delay.after 1000 Delay.Millisecond ShuffleConcealedNote
+checkEndGame : int -> int -> Cmd Msg
+checkEndGame matches count =
+    if matches == count then
+        Delay.after 1000 Delay.Millisecond EndGame
+
+    else
+        Delay.after 1000 Delay.Millisecond ShuffleConcealedNote
 
 
 noteGenerator : Random.Generator Note
@@ -162,11 +193,7 @@ noteGenerator =
 view : Model -> Html Msg
 view model =
     Element.layout
-        [ Background.color orange
-
-        -- , height fill
-        -- , width fill
-        ]
+        [ Background.color orange ]
         (viewMainContent model)
 
 
@@ -192,9 +219,8 @@ viewHome model =
         (column [ spacing 40 ]
             [ el
                 [ Font.color white
-                , Font.size 48
+                , Font.size 45
                 , centerX
-                , padding 8
                 ]
                 (text "Hearing Trainer")
             , el [ centerX ]
@@ -207,7 +233,7 @@ viewHome model =
                             , Border.rounded 10
                             , Border.color white
                             , Border.width 1
-                            , paddingXY 40 20
+                            , paddingXY 36 20
                             ]
                             { onPress = Just StartPrep
                             , label =
@@ -220,7 +246,7 @@ viewHome model =
                             , Font.color white
                             , Font.size 24
                             , Border.rounded 10
-                            , paddingXY 60 20
+                            , paddingXY 56 20
                             ]
                             { onPress = Just StartGame
                             , label =
@@ -300,41 +326,81 @@ viewGame model =
                     ]
                 )
             , viewStatus model
-            , el [ centerX ]
-                (Input.button
-                    [ Background.color orange
-                    , Font.color white
-                    , padding 10
-                    ]
-                    { onPress = Just GoHome
-                    , label =
-                        Element.html (Html.i [ Html.Attributes.class "fas fa-arrow-circle-left fa-2x" ] [])
-                    }
-                )
+            , viewGameNav model
             ]
         )
+
+
+viewGameNav : Model -> Element Msg
+viewGameNav model =
+    if model.matches == model.notesCount then
+        el [ centerX, centerY ]
+            (row [ spacing 20 ]
+                [ el [ centerX ]
+                    (Input.button
+                        [ Background.color orange
+                        , Font.color white
+                        , padding 10
+                        ]
+                        { onPress = Just GoHome
+                        , label =
+                            Element.html (Html.i [ Html.Attributes.class "fas fa-arrow-circle-left fa-2x" ] [])
+                        }
+                    )
+                , el [ centerX ]
+                    (Input.button
+                        [ Background.color orange
+                        , Font.color white
+                        , padding 10
+                        ]
+                        { onPress = Just StartGame
+                        , label =
+                            Element.html (Html.i [ Html.Attributes.class "fas fa-redo fa-2x" ] [])
+                        }
+                    )
+                ]
+            )
+
+    else
+        el [ centerX ]
+            (Input.button
+                [ Background.color orange
+                , Font.color white
+                , padding 10
+                ]
+                { onPress = Just GoHome
+                , label =
+                    Element.html (Html.i [ Html.Attributes.class "fas fa-arrow-circle-left fa-2x" ] [])
+                }
+            )
 
 
 statusToString : Status -> String
 statusToString status =
     case status of
+        OnHome ->
+            "Press Listen to hear the music notes used in this game or press Play to start playing."
+
         PreparingForGame ->
             "Play the notes above to become familiar with their sound."
 
         StartingGame ->
-            "Press Listen to hear the music notes used in this game or press Play to start playing."
-
-        PlayingGame ->
             "Push the card with the question mark to listen to a musical note, then select the correct note from the multiple choices."
 
         MatchedNote ->
-            "Very well! Now guess the next note."
+            "Very well!"
+
+        GuessNextNote ->
+            "Now guess the next note."
 
         FailedToMatchNote ->
             "Try again! That was not the correct note."
 
-        WonTheGame ->
+        GameWon ->
             "Excellent! You won."
+
+        GameLost ->
+            "You lost! Better luck next time."
 
 
 viewStatus : Model -> Element Msg
@@ -342,7 +408,7 @@ viewStatus model =
     paragraph
         [ Font.color white
         , Font.size 16
-        , width (px 320)
+        , width (px 312)
         , Element.htmlAttribute (Html.Attributes.style "marginLeft" "auto")
         , Element.htmlAttribute (Html.Attributes.style "marginRight" "auto")
         ]
@@ -388,7 +454,7 @@ noteToBeGuessed model =
             ]
             { onPress = Just ListenToConcealedNote
             , label =
-                if model.show then
+                if model.reveal then
                     text (viewNote model.note)
 
                 else
@@ -404,7 +470,7 @@ musicNote note =
             [ Background.color slateBlue
             , Font.color white
             , Border.rounded 50
-            , padding 30
+            , padding 20
             ]
             { onPress = Just (ListenToNote note)
             , label = text (viewNote note)
@@ -414,17 +480,17 @@ musicNote note =
 
 guessingOption : Note -> Element Msg
 guessingOption note =
-    el []
-        (Input.button
-            [ Background.color slateBlue
-            , Font.color white
-            , Border.rounded 50
-            , padding 30
-            ]
-            { onPress = Just (MakeAGuess note)
-            , label = text (viewNote note)
-            }
-        )
+        el []
+            (Input.button
+                [ Background.color slateBlue
+                , Font.color white
+                , Border.rounded 50
+                , padding 20
+                ]
+                { onPress = Just (MakeAGuess note)
+                , label = text (viewNote note)
+                }
+            )
 
 
 
