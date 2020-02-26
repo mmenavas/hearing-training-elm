@@ -10,7 +10,9 @@ import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
 import Json.Encode as E
-import Random
+import List exposing (head, length)
+import Random exposing (generate)
+import Random.List exposing (choose)
 
 
 
@@ -58,25 +60,30 @@ type Note
 type alias Model =
     { screen : Screen
     , status : Status
-    , note : Note
+    , note : Maybe Note
     , reveal : Bool
     , matches : Int
     , misses : Int
-    , notesCount : Int
+    , noteCount : Int
+    , noteList : List Note
     }
 
 
-init : ( Model, Cmd Msg )
+init : Model
 init =
-    ( Model HomeScreen OnHome Do False 0 0 0
-    , Cmd.none
+    let
+        noteList =
+            [ Do, Re, Mi, Fa, Sol, La, Si ]
+    in
+        Model HomeScreen OnHome (head noteList) True 0 0 (length noteList) noteList
+
+
+newGame : Model -> ( Model, Cmd Msg )
+newGame model =
+    ( { model | screen = GameScreen, status = StartingGame }
+    , generate UpdateConcealedNote (choose model.noteList)
     )
 
-newGame : ( Model, Cmd Msg )
-newGame =
-    ( Model GameScreen StartingGame Do True 0 0 7
-    , Random.generate UpdateConcealedNote noteGenerator
-    )
 
 
 ---- UPDATE ----
@@ -90,7 +97,7 @@ type Msg
     | ListenToConcealedNote
     | MakeAGuess Note
     | ShuffleConcealedNote
-    | UpdateConcealedNote Note
+    | UpdateConcealedNote (Maybe Note, List Note)
     | EndGame
 
 
@@ -98,7 +105,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GoHome ->
-            init
+            ( init, Cmd.none )
 
         StartPrep ->
             ( { model | screen = PrepScreen, status = PreparingForGame }
@@ -106,47 +113,62 @@ update msg model =
             )
 
         StartGame ->
-            newGame
+            newGame init
 
         ListenToNote note ->
             ( model, playNote note )
 
         ListenToConcealedNote ->
-            ( model
-            , playNote model.note
-            )
+            case model.note of
+                Nothing ->
+                    ( model
+                    , Cmd.none
+                    )
+
+                Just mNote ->
+                    ( model
+                    , playNote mNote
+                    )
 
         MakeAGuess note ->
-            if not ( model.status == GameWon || model.status == GameLost ) then 
-                if note == model.note then
-                    let
-                        newMatches =
-                            model.matches + 1
-                    in
-                    ( { model | reveal = True, status = MatchedNote, matches = newMatches }
-                    , Cmd.batch [ playNote note, checkEndGame newMatches model.notesCount ]
-                    )
+            if not (model.status == GameWon || model.status == GameLost) then
+                case model.note of
+                    Nothing ->
+                        ( model
+                        , Cmd.none
+                        )
 
-                else
-                    ( { model | status = FailedToMatchNote, misses = model.misses + 1 }
-                    , playNote note
-                    )
+                    Just mNote ->
+                        if note == mNote then
+                            let
+                                newMatches =
+                                    model.matches + 1
+                            in
+                            ( { model | reveal = True, status = MatchedNote, matches = newMatches }
+                            , Cmd.batch [ playNote note, checkEndGame newMatches model.noteCount ]
+                            )
+
+                        else
+                            ( { model | status = FailedToMatchNote, misses = model.misses + 1 }
+                            , playNote note
+                            )
+
             else
                 ( model, playNote note )
 
         ShuffleConcealedNote ->
             ( model
-            , Random.generate UpdateConcealedNote noteGenerator
+            , generate UpdateConcealedNote (choose model.noteList)
             )
 
-        UpdateConcealedNote newNote ->
+        UpdateConcealedNote (newNote, newNoteList) ->
             if model.status == StartingGame then
-                ( { model | note = newNote, status = StartingGame, reveal = False }
+                ( { model | note = newNote, noteList = newNoteList, status = StartingGame, reveal = False }
                 , Cmd.none
                 )
 
-            else 
-                ( { model | note = newNote, status = GuessNextNote, reveal = False }
+            else
+                ( { model | note = newNote, noteList = newNoteList, status = GuessNextNote, reveal = False }
                 , Cmd.none
                 )
 
@@ -172,18 +194,6 @@ checkEndGame matches count =
 
     else
         Delay.after 1000 Delay.Millisecond ShuffleConcealedNote
-
-
-noteGenerator : Random.Generator Note
-noteGenerator =
-    Random.uniform Do
-        [ Re
-        , Mi
-        , Fa
-        , Sol
-        , La
-        , Si
-        ]
 
 
 
@@ -333,7 +343,7 @@ viewGame model =
 
 viewGameNav : Model -> Element Msg
 viewGameNav model =
-    if model.matches == model.notesCount then
+    if model.matches == model.noteCount then
         el [ centerX, centerY ]
             (row [ spacing 20 ]
                 [ el [ centerX ]
@@ -455,7 +465,11 @@ noteToBeGuessed model =
             { onPress = Just ListenToConcealedNote
             , label =
                 if model.reveal then
-                    text (viewNote model.note)
+                    case model.note of
+                        Nothing ->
+                            text ""
+                        Just mNote ->
+                            text (viewNote mNote)
 
                 else
                     Element.html (Html.i [ Html.Attributes.class "fas fa-question" ] [])
@@ -480,17 +494,17 @@ musicNote note =
 
 guessingOption : Note -> Element Msg
 guessingOption note =
-        el []
-            (Input.button
-                [ Background.color slateBlue
-                , Font.color white
-                , Border.rounded 50
-                , padding 20
-                ]
-                { onPress = Just (MakeAGuess note)
-                , label = text (viewNote note)
-                }
-            )
+    el []
+        (Input.button
+            [ Background.color slateBlue
+            , Font.color white
+            , Border.rounded 50
+            , padding 20
+            ]
+            { onPress = Just (MakeAGuess note)
+            , label = text (viewNote note)
+            }
+        )
 
 
 
@@ -525,7 +539,7 @@ main : Program () Model Msg
 main =
     Browser.element
         { view = view
-        , init = \_ -> init
+        , init = \_ -> ( init, Cmd.none )
         , update = update
         , subscriptions = always Sub.none
         }
