@@ -69,6 +69,7 @@ type alias Model =
     }
 
 
+
 init : Model
 init =
     let
@@ -184,7 +185,7 @@ update msg model =
 
 playNote : Note -> Cmd Msg
 playNote note =
-    play (E.string (viewNote note))
+    play (E.string (noteToString note))
 
 
 checkEndGame : int -> int -> Cmd Msg
@@ -280,15 +281,15 @@ viewNotes model =
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ musicNote Do
-                        , musicNote Re
-                        , musicNote Mi
-                        , musicNote Fa
+                        [ viewNote  Do
+                        , viewNote  Re
+                        , viewNote  Mi
+                        , viewNote  Fa
                         ]
                     , row [ spacing 8, centerX ]
-                        [ musicNote Sol
-                        , musicNote La
-                        , musicNote Si
+                        [ viewNote  Sol
+                        , viewNote  La
+                        , viewNote  Si
                         ]
                     ]
                 )
@@ -316,22 +317,22 @@ viewGame model =
                 [ centerX
                 , padding 20
                 ]
-                (noteToBeGuessed model)
+                (viewNoteToGuess model)
             , el
                 [ centerX
                 , padding 8
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ guessingOption Do
-                        , guessingOption Re
-                        , guessingOption Mi
-                        , guessingOption Fa
+                        [ viewGuessingOption Do
+                        , viewGuessingOption Re
+                        , viewGuessingOption Mi
+                        , viewGuessingOption Fa
                         ]
                     , row [ spacing 8, centerX ]
-                        [ guessingOption Sol
-                        , guessingOption La
-                        , guessingOption Si
+                        [ viewGuessingOption Sol
+                        , viewGuessingOption La
+                        , viewGuessingOption Si
                         ]
                     ]
                 )
@@ -385,6 +386,79 @@ viewGameNav model =
             )
 
 
+viewStatus : Model -> Element Msg
+viewStatus model =
+    paragraph
+        [ Font.color white
+        , Font.size 16
+        , width (px 312)
+        , Element.htmlAttribute (Html.Attributes.style "marginLeft" "auto")
+        , Element.htmlAttribute (Html.Attributes.style "marginRight" "auto")
+        ]
+        [ text (statusToString model.status) ]
+
+
+viewNoteToGuess : Model -> Element Msg
+viewNoteToGuess model =
+    el []
+        (Input.button
+            [ Background.color orange
+            , Border.rounded 10
+            , Border.color white
+            , Border.width 1
+            , padding 40
+            , Font.color white
+            , Font.size 50
+            ]
+            { onPress = Just ListenToConcealedNote
+            , label =
+                if model.reveal then
+                    case model.note of
+                        Nothing ->
+                            text ""
+                        Just mNote ->
+                            text (noteToString mNote)
+
+                else
+                    Element.html (Html.i [ Html.Attributes.class "fas fa-question" ] [])
+            }
+        )
+
+
+viewNote : Note -> Element Msg
+viewNote note =
+    el []
+        (Input.button
+            [ Background.color slateBlue
+            , Font.color white
+            , Border.rounded 50
+            , padding 20
+            ]
+            { onPress = Just (ListenToNote note)
+            , label = text (noteToString note)
+            }
+        )
+
+
+viewGuessingOption : Note -> Element Msg
+viewGuessingOption note =
+    el []
+        (Input.button
+            [ Background.color slateBlue
+            , Font.color white
+            , Border.rounded 50
+            , padding 20
+            ]
+            { onPress = Just (MakeAGuess note)
+            , label = text (noteToString note)
+            }
+        )
+
+
+
+---- Custom Type to String ----        
+
+
 statusToString : Status -> String
 statusToString status =
     case status of
@@ -413,20 +487,8 @@ statusToString status =
             "You lost! Better luck next time."
 
 
-viewStatus : Model -> Element Msg
-viewStatus model =
-    paragraph
-        [ Font.color white
-        , Font.size 16
-        , width (px 312)
-        , Element.htmlAttribute (Html.Attributes.style "marginLeft" "auto")
-        , Element.htmlAttribute (Html.Attributes.style "marginRight" "auto")
-        ]
-        [ text (statusToString model.status) ]
-
-
-viewNote : Note -> String
-viewNote note =
+noteToString : Note -> String
+noteToString note =
     case note of
         Do ->
             "Do"
@@ -448,63 +510,6 @@ viewNote note =
 
         Si ->
             "Si"
-
-
-noteToBeGuessed : Model -> Element Msg
-noteToBeGuessed model =
-    el []
-        (Input.button
-            [ Background.color orange
-            , Border.rounded 10
-            , Border.color white
-            , Border.width 1
-            , padding 40
-            , Font.color white
-            , Font.size 50
-            ]
-            { onPress = Just ListenToConcealedNote
-            , label =
-                if model.reveal then
-                    case model.note of
-                        Nothing ->
-                            text ""
-                        Just mNote ->
-                            text (viewNote mNote)
-
-                else
-                    Element.html (Html.i [ Html.Attributes.class "fas fa-question" ] [])
-            }
-        )
-
-
-musicNote : Note -> Element Msg
-musicNote note =
-    el []
-        (Input.button
-            [ Background.color slateBlue
-            , Font.color white
-            , Border.rounded 50
-            , padding 20
-            ]
-            { onPress = Just (ListenToNote note)
-            , label = text (viewNote note)
-            }
-        )
-
-
-guessingOption : Note -> Element Msg
-guessingOption note =
-    el []
-        (Input.button
-            [ Background.color slateBlue
-            , Font.color white
-            , Border.rounded 50
-            , padding 20
-            ]
-            { onPress = Just (MakeAGuess note)
-            , label = text (viewNote note)
-            }
-        )
 
 
 
