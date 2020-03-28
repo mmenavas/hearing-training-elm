@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Browser
 import Delay
-import Element exposing (Color, Element, alignRight, centerX, centerY, column, el, fill, height, padding, paddingXY, paragraph, px, rgb255, row, spacing, text, width)
+import Element exposing (Color, Element, centerX, centerY, column, el, padding, paddingXY, paragraph, px, rgb255, row, spacing, text, width)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -10,7 +10,7 @@ import Element.Input as Input
 import Html exposing (Html)
 import Html.Attributes
 import Json.Encode as E
-import List exposing (head, length)
+import List exposing (head, length, member)
 import Random exposing (generate)
 import Random.List exposing (choose)
 
@@ -62,12 +62,11 @@ type alias Model =
     , status : Status
     , note : Maybe Note
     , reveal : Bool
-    , matches : Int
+    , matches : List Note
     , misses : Int
     , noteCount : Int
     , noteList : List Note
     }
-
 
 
 init : Model
@@ -76,7 +75,7 @@ init =
         noteList =
             [ Do, Re, Mi, Fa, Sol, La, Si ]
     in
-        Model HomeScreen OnHome (head noteList) True 0 0 (length noteList) noteList
+    Model HomeScreen OnHome (head noteList) True [] 0 (length noteList) noteList
 
 
 newGame : Model -> ( Model, Cmd Msg )
@@ -98,7 +97,7 @@ type Msg
     | ListenToConcealedNote
     | MakeAGuess Note
     | ShuffleConcealedNote
-    | UpdateConcealedNote (Maybe Note, List Note)
+    | UpdateConcealedNote ( Maybe Note, List Note )
     | EndGame
 
 
@@ -143,7 +142,7 @@ update msg model =
                         if note == mNote then
                             let
                                 newMatches =
-                                    model.matches + 1
+                                    note :: model.matches
                             in
                             ( { model | reveal = True, status = MatchedNote, matches = newMatches }
                             , Cmd.batch [ playNote note, checkEndGame newMatches model.noteCount ]
@@ -162,7 +161,7 @@ update msg model =
             , generate UpdateConcealedNote (choose model.noteList)
             )
 
-        UpdateConcealedNote (newNote, newNoteList) ->
+        UpdateConcealedNote ( newNote, newNoteList ) ->
             if model.status == StartingGame then
                 ( { model | note = newNote, noteList = newNoteList, status = StartingGame, reveal = False }
                 , Cmd.none
@@ -188,9 +187,9 @@ playNote note =
     play (E.string (noteToString note))
 
 
-checkEndGame : int -> int -> Cmd Msg
+checkEndGame : List Note -> Int -> Cmd Msg
 checkEndGame matches count =
-    if matches == count then
+    if length matches == count then
         Delay.after 1000 Delay.Millisecond EndGame
 
     else
@@ -281,15 +280,15 @@ viewNotes model =
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ viewNote  Do
-                        , viewNote  Re
-                        , viewNote  Mi
-                        , viewNote  Fa
+                        [ viewNote Do
+                        , viewNote Re
+                        , viewNote Mi
+                        , viewNote Fa
                         ]
                     , row [ spacing 8, centerX ]
-                        [ viewNote  Sol
-                        , viewNote  La
-                        , viewNote  Si
+                        [ viewNote Sol
+                        , viewNote La
+                        , viewNote Si
                         ]
                     ]
                 )
@@ -324,15 +323,15 @@ viewGame model =
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ viewGuessingOption Do
-                        , viewGuessingOption Re
-                        , viewGuessingOption Mi
-                        , viewGuessingOption Fa
+                        [ viewGuessingOption Do model.matches
+                        , viewGuessingOption Re model.matches
+                        , viewGuessingOption Mi model.matches
+                        , viewGuessingOption Fa model.matches
                         ]
                     , row [ spacing 8, centerX ]
-                        [ viewGuessingOption Sol
-                        , viewGuessingOption La
-                        , viewGuessingOption Si
+                        [ viewGuessingOption Sol model.matches
+                        , viewGuessingOption La model.matches
+                        , viewGuessingOption Si model.matches
                         ]
                     ]
                 )
@@ -344,7 +343,7 @@ viewGame model =
 
 viewGameNav : Model -> Element Msg
 viewGameNav model =
-    if model.matches == model.noteCount then
+    if length model.matches == model.noteCount then
         el [ centerX, centerY ]
             (row [ spacing 20 ]
                 [ el [ centerX ]
@@ -416,6 +415,7 @@ viewNoteToGuess model =
                     case model.note of
                         Nothing ->
                             text ""
+
                         Just mNote ->
                             text (noteToString mNote)
 
@@ -440,23 +440,27 @@ viewNote note =
         )
 
 
-viewGuessingOption : Note -> Element Msg
-viewGuessingOption note =
+viewGuessingOption : Note -> List Note -> Element Msg
+viewGuessingOption note matches =
+    let
+        disable =
+            member note matches
+    in
     el []
         (Input.button
-            [ Background.color slateBlue
+            [ Background.color (if not disable then slateBlue else blue)
             , Font.color white
             , Border.rounded 50
             , padding 20
             ]
-            { onPress = Just (MakeAGuess note)
+            { onPress = if not disable then Just (MakeAGuess note) else Nothing
             , label = text (noteToString note)
             }
         )
 
 
 
----- Custom Type to String ----        
+---- Custom Type to String ----
 
 
 statusToString : Status -> String
