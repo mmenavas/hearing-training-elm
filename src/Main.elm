@@ -203,7 +203,7 @@ checkEndGame matches count =
 view : Model -> Html Msg
 view model =
     Element.layout
-        [ Background.color orange ]
+        [ Background.color colorOrange ]
         (viewMainContent model)
 
 
@@ -228,7 +228,7 @@ viewHome model =
         ]
         (column [ spacing 40 ]
             [ el
-                [ Font.color white
+                [ Font.color colorWhite
                 , Font.size 45
                 , centerX
                 ]
@@ -237,11 +237,11 @@ viewHome model =
                 (row [ spacing 8 ]
                     [ el []
                         (Input.button
-                            [ Background.color orange
-                            , Font.color white
+                            [ Background.color colorOrange
+                            , Font.color colorWhite
                             , Font.size 24
                             , Border.rounded 10
-                            , Border.color white
+                            , Border.color colorWhite
                             , Border.width 1
                             , paddingXY 36 20
                             ]
@@ -252,8 +252,8 @@ viewHome model =
                         )
                     , el []
                         (Input.button
-                            [ Background.color slateBlue
-                            , Font.color white
+                            [ Background.color colorSlateBlue
+                            , Font.color colorWhite
                             , Font.size 24
                             , Border.rounded 10
                             , paddingXY 56 20
@@ -295,8 +295,8 @@ viewNotes model =
             , viewStatus model
             , el [ centerX ]
                 (Input.button
-                    [ Background.color orange
-                    , Font.color white
+                    [ Background.color colorOrange
+                    , Font.color colorWhite
                     , padding 10
                     ]
                     { onPress = Just GoHome
@@ -348,8 +348,8 @@ viewGameNav model =
             (row [ spacing 20 ]
                 [ el [ centerX ]
                     (Input.button
-                        [ Background.color orange
-                        , Font.color white
+                        [ Background.color colorOrange
+                        , Font.color colorWhite
                         , padding 10
                         ]
                         { onPress = Just GoHome
@@ -359,8 +359,8 @@ viewGameNav model =
                     )
                 , el [ centerX ]
                     (Input.button
-                        [ Background.color orange
-                        , Font.color white
+                        [ Background.color colorOrange
+                        , Font.color colorWhite
                         , padding 10
                         ]
                         { onPress = Just StartGame
@@ -374,8 +374,8 @@ viewGameNav model =
     else
         el [ centerX ]
             (Input.button
-                [ Background.color orange
-                , Font.color white
+                [ Background.color colorOrange
+                , Font.color colorWhite
                 , padding 10
                 ]
                 { onPress = Just GoHome
@@ -388,7 +388,7 @@ viewGameNav model =
 viewStatus : Model -> Element Msg
 viewStatus model =
     paragraph
-        [ Font.color white
+        [ Font.color colorWhite
         , Font.size 16
         , width (px 312)
         , Element.htmlAttribute (Html.Attributes.style "marginLeft" "auto")
@@ -401,12 +401,12 @@ viewNoteToGuess : Model -> Element Msg
 viewNoteToGuess model =
     el []
         (Input.button
-            [ Background.color orange
+            [ Background.color colorOrange
             , Border.rounded 10
-            , Border.color white
+            , Border.color colorWhite
             , Border.width 1
             , padding 40
-            , Font.color white
+            , Font.color colorWhite
             , Font.size 50
             ]
             { onPress = Just ListenToConcealedNote
@@ -429,8 +429,8 @@ viewNote : Note -> Element Msg
 viewNote note =
     el []
         (Input.button
-            [ Background.color slateBlue
-            , Font.color white
+            [ Background.color colorSlateBlue
+            , Font.color colorWhite
             , Border.rounded 50
             , padding 20
             ]
@@ -448,8 +448,8 @@ viewGuessingOption note matches =
     in
     el []
         (Input.button
-            [ Background.color (if not disable then slateBlue else blue)
-            , Font.color white
+            [ Background.color (if not disable then colorSlateBlue else colorBlue)
+            , Font.color colorWhite
             , Border.rounded 50
             , padding 20
             ]
@@ -517,26 +517,26 @@ noteToString note =
 
 
 
----- Colors ----
+---- Custom Colors ----
 
 
-orange : Color
-orange =
+colorOrange : Color
+colorOrange =
     rgb255 250 141 0
 
 
-blue : Color
-blue =
+colorBlue : Color
+colorBlue =
     rgb255 0 164 250
 
 
-slateBlue : Color
-slateBlue =
+colorSlateBlue : Color
+colorSlateBlue =
     rgb255 73 138 173
 
 
-white : Color
-white =
+colorWhite : Color
+colorWhite =
     rgb255 255 255 255
 
 
