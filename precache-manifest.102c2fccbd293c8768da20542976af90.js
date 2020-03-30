@@ -52,7 +52,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/hearing-training-elm/favicon.ico"
   },
   {
-    "revision": "03fe671a881db47143a6cd33747578fc",
+    "revision": "47f1105cdc3bded6e2271b3742f01921",
     "url": "/hearing-training-elm/index.html"
   },
   {
@@ -64,12 +64,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/hearing-training-elm/manifest.json"
   },
   {
-    "revision": "343ec93a80bc2f4fb01c",
+    "revision": "feea8c2724c8eee23fb8",
     "url": "/hearing-training-elm/static/css/main.7f457dfb.chunk.css"
   },
   {
-    "revision": "343ec93a80bc2f4fb01c",
-    "url": "/hearing-training-elm/static/js/main.343ec93a.chunk.js"
+    "revision": "feea8c2724c8eee23fb8",
+    "url": "/hearing-training-elm/static/js/main.feea8c27.chunk.js"
   },
   {
     "revision": "ca4245f806e9ac413c97",
