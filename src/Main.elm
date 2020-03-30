@@ -63,6 +63,7 @@ type alias Model =
     , note : Maybe Note
     , reveal : Bool
     , matches : List Note
+    , allowedMisses : Int
     , misses : Int
     , noteCount : Int
     , noteList : List Note
@@ -75,7 +76,7 @@ init =
         noteList =
             [ Do, Re, Mi, Fa, Sol, La, Si ]
     in
-    Model HomeScreen OnHome (head noteList) True [] 0 (length noteList) noteList
+    Model HomeScreen OnHome (head noteList) True [] 3 0 (length noteList) noteList
 
 
 newGame : Model -> ( Model, Cmd Msg )
@@ -131,7 +132,7 @@ update msg model =
                     )
 
         MakeAGuess note ->
-            if not (model.status == GameWon || model.status == GameLost) then
+            if not (model.status == GameWon) && not (model.status == GameLost) then
                 case model.note of
                     Nothing ->
                         ( model
@@ -148,13 +149,18 @@ update msg model =
                             , Cmd.batch [ playNote note, checkEndGame newMatches model.noteCount ]
                             )
 
-                        else
+                        else if (model.misses + 1) < model.allowedMisses then
                             ( { model | status = FailedToMatchNote, misses = model.misses + 1 }
                             , playNote note
                             )
 
+                        else
+                            ( { model | status = GameLost, misses = model.misses + 1 }
+                            , playNote note
+                            )
+
             else
-                ( model, playNote note )
+                ( model, Cmd.none )
 
         ShuffleConcealedNote ->
             ( model
@@ -314,6 +320,14 @@ viewGame model =
         (column [ spacing 20 ]
             [ el
                 [ centerX
+                ]
+                (column []
+                    [ row [ spacing 8, centerX ]
+                        (List.append (viewChances model.misses False) (viewChances (model.allowedMisses - model.misses) True))
+                    ]
+                )
+            , el
+                [ centerX
                 , padding 20
                 ]
                 (viewNoteToGuess model)
@@ -339,6 +353,30 @@ viewGame model =
             , viewGameNav model
             ]
         )
+
+
+viewChances : Int -> Bool -> List (Element Msg)
+viewChances n isOn =
+    case n of
+        0 ->
+            []
+
+        1 ->
+            [ viewChanceIcon isOn ]
+
+        _ ->
+            viewChanceIcon isOn :: viewChances (n - 1) isOn
+
+
+viewChanceIcon : Bool -> Element Msg
+viewChanceIcon isOn =
+    if isOn then
+        el [ spacing 4 ]
+            (Element.html (Html.i [ Html.Attributes.class "fas fa-music fa-2x", Html.Attributes.style "color" "#498AAD" ] []))
+
+    else
+        el [ spacing 4 ]
+            (Element.html (Html.i [ Html.Attributes.class "fas fa-music fa-2x", Html.Attributes.style "color" "#AD6200" ] []))
 
 
 viewGameNav : Model -> Element Msg
@@ -541,9 +579,19 @@ colorBlue =
     rgb255 0 164 250
 
 
+colorLightBlue : Color
+colorLightBlue =
+    rgb255 194 234 255
+
+
 colorSlateBlue : Color
 colorSlateBlue =
     rgb255 73 138 173
+
+
+colorGray : Color
+colorGray =
+    rgb255 204 204 204
 
 
 colorWhite : Color
