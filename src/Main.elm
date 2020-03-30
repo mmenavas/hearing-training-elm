@@ -448,12 +448,23 @@ viewGuessingOption note matches =
     in
     el []
         (Input.button
-            [ Background.color (if not disable then colorSlateBlue else colorBlue)
+            [ Background.color
+                (if not disable then
+                    colorSlateBlue
+
+                 else
+                    colorBlue
+                )
             , Font.color colorWhite
             , Border.rounded 50
             , padding 20
             ]
-            { onPress = if not disable then Just (MakeAGuess note) else Nothing
+            { onPress =
+                if not disable then
+                    Just (MakeAGuess note)
+
+                else
+                    Nothing
             , label = text (noteToString note)
             }
         )
