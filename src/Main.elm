@@ -127,9 +127,15 @@ update msg model =
                     )
 
                 Just mNote ->
-                    ( model
-                    , playNote mNote
-                    )
+                    if not (model.status == GameWon) && not (model.status == GameLost) then
+                        ( model
+                        , playNote mNote
+                        )
+
+                    else
+                        ( model
+                        , Cmd.none
+                        )
 
         MakeAGuess note ->
             if not (model.status == GameWon) && not (model.status == GameLost) then
@@ -196,7 +202,7 @@ playNote note =
 checkEndGame : List Note -> Int -> Cmd Msg
 checkEndGame matches count =
     if length matches == count then
-        Delay.after 1000 Delay.Millisecond EndGame
+        Delay.after 1500 Delay.Millisecond EndGame
 
     else
         Delay.after 1000 Delay.Millisecond ShuffleConcealedNote
@@ -232,7 +238,7 @@ viewHome model =
         [ centerX
         , centerY
         ]
-        (column [ spacing 40 ]
+        (column [ spacing 32 ]
             [ el
                 [ Font.color colorWhite
                 , Font.size 45
@@ -317,7 +323,7 @@ viewNotes model =
 viewGame : Model -> Element Msg
 viewGame model =
     el [ centerX, centerY ]
-        (column [ spacing 20 ]
+        (column [ spacing 16 ]
             [ el
                 [ centerX
                 ]
@@ -328,7 +334,7 @@ viewGame model =
                 )
             , el
                 [ centerX
-                , padding 20
+                , padding 16
                 ]
                 (viewNoteToGuess model)
             , el
@@ -381,7 +387,7 @@ viewChanceIcon isOn =
 
 viewGameNav : Model -> Element Msg
 viewGameNav model =
-    if length model.matches == model.noteCount then
+    if model.status == GameLost || model.status == GameWon then
         el [ centerX, centerY ]
             (row [ spacing 20 ]
                 [ el [ centerX ]
@@ -427,7 +433,7 @@ viewStatus : Model -> Element Msg
 viewStatus model =
     paragraph
         [ Font.color colorWhite
-        , Font.size 16
+        , Font.size 18
         , width (px 312)
         , Element.htmlAttribute (Html.Attributes.style "marginLeft" "auto")
         , Element.htmlAttribute (Html.Attributes.style "marginRight" "auto")
@@ -516,28 +522,28 @@ statusToString : Status -> String
 statusToString status =
     case status of
         OnHome ->
-            "Press Listen to hear the music notes used in this game or press Play to start playing."
+            "LISTEN to the musical notes used in this app or START training."
 
         PreparingForGame ->
-            "Play the notes above to become familiar with their sound."
+            "Press any note to listen to it."
 
         StartingGame ->
-            "Push the card with the question mark to listen to a musical note, then select the correct note from the multiple choices."
+            "Press the question mark to listen to a musical note, then guess the correct note."
 
         MatchedNote ->
-            "Very well!"
+            "Great! It's a match!"
 
         GuessNextNote ->
-            "Now guess the next note."
+            "Guess the next note."
 
         FailedToMatchNote ->
-            "Try again! That was not the correct note."
+            "Yikes! Wrong note. Try again!"
 
         GameWon ->
-            "Excellent! You won."
+            "Congratilations! You won! =)"
 
         GameLost ->
-            "You lost! Better luck next time."
+            "You lost! Better luck next time. =("
 
 
 noteToString : Note -> String
