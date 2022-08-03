@@ -1,3 +1,3 @@
 module.exports = {
-  homepage: "https://mmenavas.github.io/hearing-training-elm",
+  homepage: "https://hearingtrainer.iammaximo.com/",
 }
