@@ -8,7 +8,7 @@ This project was bootstrapped with [Create Elm App](https://github.com/halfzebra
 - Install the `create-elm-app` CLI tool: `npm install create-elm-app -g`
 - Start development environment:  `elm-app start`
 - Create a build ready for deploy: `elm-app build`
-- Deploy with GitHub Pages: `gh-pages -d build`
+- Deploy with GitHub Pages: `gh-pages -d build` (requires gh-pages 3.0.0)
 
 ## Roadmap
 - Add a score system.
