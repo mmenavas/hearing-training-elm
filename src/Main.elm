@@ -44,13 +44,21 @@ type Status
 
 
 type Note
-    = Do
-    | Re
-    | Mi
-    | Fa
-    | Sol
-    | La
-    | Si
+    = A2
+    | B2
+    | C3
+    | D3
+    | E3
+    | F3
+    | G3
+    | A3
+    | B3
+    | C4
+    | D4
+    | E4
+    | F4
+    | G4
+    | A4
 
 
 
@@ -74,7 +82,7 @@ init : Model
 init =
     let
         noteList =
-            [ Do, Re, Mi, Fa, Sol, La, Si ]
+            [ A2, B2, C3, D3, E3, F3, G3, A3, B3, C4, D4, E4, F4, G4, A4 ]
     in
     Model HomeScreen OnHome (head noteList) True [] 3 0 (length noteList) noteList
 
@@ -292,15 +300,27 @@ viewNotes model =
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ viewNote Do
-                        , viewNote Re
-                        , viewNote Mi
-                        , viewNote Fa
+                        [ viewNote A2
+                        , viewNote B2
+                        , viewNote C3
+                        , viewNote D3
                         ]
                     , row [ spacing 8, centerX ]
-                        [ viewNote Sol
-                        , viewNote La
-                        , viewNote Si
+                        [ viewNote E3
+                        , viewNote F3
+                        , viewNote G3
+                        , viewNote A3
+                        ]
+                    , row [ spacing 8, centerX ]
+                        [ viewNote B3
+                        , viewNote C4
+                        , viewNote D4
+                        , viewNote E4
+                        ]
+                    , row [ spacing 8, centerX ]
+                        [ viewNote F4
+                        , viewNote G4
+                        , viewNote A4
                         ]
                     ]
                 )
@@ -343,15 +363,27 @@ viewGame model =
                 ]
                 (column [ spacing 8 ]
                     [ row [ spacing 8, centerX ]
-                        [ viewGuessingOption Do model.matches
-                        , viewGuessingOption Re model.matches
-                        , viewGuessingOption Mi model.matches
-                        , viewGuessingOption Fa model.matches
+                        [ viewGuessingOption A2 model.matches
+                        , viewGuessingOption B2 model.matches
+                        , viewGuessingOption C3 model.matches
+                        , viewGuessingOption D3 model.matches
                         ]
                     , row [ spacing 8, centerX ]
-                        [ viewGuessingOption Sol model.matches
-                        , viewGuessingOption La model.matches
-                        , viewGuessingOption Si model.matches
+                        [ viewGuessingOption E3 model.matches
+                        , viewGuessingOption F3 model.matches
+                        , viewGuessingOption G3 model.matches
+                        , viewGuessingOption A3 model.matches
+                        ]
+                    , row [ spacing 8, centerX ]
+                        [ viewGuessingOption B3 model.matches
+                        , viewGuessingOption C4 model.matches
+                        , viewGuessingOption D4 model.matches
+                        , viewGuessingOption E4 model.matches
+                        ]
+                    , row [ spacing 8, centerX ]
+                        [ viewGuessingOption F4 model.matches
+                        , viewGuessingOption G4 model.matches
+                        , viewGuessingOption A4 model.matches
                         ]
                     ]
                 )
@@ -549,26 +581,50 @@ statusToString status =
 noteToString : Note -> String
 noteToString note =
     case note of
-        Do ->
-            "Do"
+        A2 ->
+            "A2"
 
-        Re ->
-            "Re"
+        B2 ->
+            "B2"
 
-        Mi ->
-            "Mi"
+        C3 ->
+            "C3"
 
-        Fa ->
-            "Fa"
+        D3 ->
+            "D3"
 
-        Sol ->
-            "Sol"
+        E3 ->
+            "E3"
 
-        La ->
-            "La"
+        F3 ->
+            "F3"
 
-        Si ->
-            "Si"
+        G3 ->
+            "G3"
+
+        A3 ->
+            "A3"
+
+        B3 ->
+            "B3"
+
+        C4 ->
+            "C4"
+
+        D4 ->
+            "D4"
+
+        E4 ->
+            "E4"
+
+        F4 ->
+            "F4"
+
+        G4 ->
+            "G4"
+
+        A4 ->
+            "A4"
 
 
 
